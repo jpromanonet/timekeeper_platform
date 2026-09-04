@@ -1,0 +1,9 @@
+.env
+/storage/avatars/*
+!/storage/avatars/.gitkeep
+/storage/covers/*
+!/storage/covers/.gitkeep
+/storage/events/*
+!/storage/events/.gitkeep
+/storage/*.log
+/vendor/
