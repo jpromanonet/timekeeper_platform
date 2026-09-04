@@ -137,12 +137,16 @@ final class TimelinePdfService
         }
 
         $archive = trim((string) ($this->timeline['collection_name'] ?? ''));
+        $serie = trim((string) ($this->timeline['series_name'] ?? ''));
         $range = $this->dateRangeLabel($events);
         $chips = [
             $archive !== '' ? $archive : 'Sin archivo',
-            count($events) . (count($events) === 1 ? ' evento' : ' eventos'),
-            status_label((string) ($this->timeline['status'] ?? 'active')),
         ];
+        if ($serie !== '') {
+            $chips[] = $serie;
+        }
+        $chips[] = count($events) . (count($events) === 1 ? ' evento' : ' eventos');
+        $chips[] = status_label((string) ($this->timeline['status'] ?? 'active'));
         if ($range !== '') {
             $chips[] = $range;
         }

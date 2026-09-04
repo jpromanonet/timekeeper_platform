@@ -13,10 +13,17 @@ final class Auth
         $secure = function_exists('request_scheme')
             ? request_scheme() === 'https'
             : (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
-        $lifetime = (int) app_config('session_lifetime', 28800);
+        $lifetime = (int) app_config('session_lifetime', 86400);
         if ($lifetime < 300) {
             $lifetime = 300;
         }
+        $idle = (int) app_config('session_idle', $lifetime);
+        if ($idle < 60) {
+            $idle = $lifetime;
+        }
+
+        ini_set('session.gc_maxlifetime', (string) $lifetime);
+        ini_set('session.cookie_lifetime', (string) $lifetime);
 
         session_name($name);
         session_set_cookie_params([
@@ -31,11 +38,15 @@ final class Auth
             'cookie_httponly' => true,
             'cookie_samesite' => 'Lax',
             'cookie_secure' => $secure,
+            'gc_maxlifetime' => $lifetime,
             'use_strict_mode' => true,
             'use_only_cookies' => true,
         ]);
 
-        self::enforceIdleTimeout((int) app_config('session_idle', 7200));
+        self::enforceIdleTimeout($idle);
+        if (self::check()) {
+            self::touchCookie($lifetime, $secure);
+        }
     }
 
     public static function attempt(string $email, string $password): bool
@@ -69,6 +80,7 @@ final class Auth
         session_regenerate_id(true);
         self::hydrateSession($user);
         $_SESSION['_last_activity'] = time();
+        self::touchCookie();
 
         $upd = Database::pdo()->prepare('UPDATE users SET last_login_at = NOW() WHERE id = :id');
         $upd->execute(['id' => $user['id']]);
@@ -188,6 +200,37 @@ final class Auth
             return;
         }
         $_SESSION['_last_activity'] = time();
+    }
+
+    private static function touchCookie(?int $lifetime = null, ?bool $secure = null): void
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return;
+        }
+        $id = session_id();
+        if (!is_string($id) || $id === '') {
+            return;
+        }
+        if ($lifetime === null) {
+            $lifetime = (int) app_config('session_lifetime', 86400);
+        }
+        if ($lifetime < 300) {
+            $lifetime = 300;
+        }
+        if ($secure === null) {
+            $secure = function_exists('request_scheme')
+                ? request_scheme() === 'https'
+                : (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        }
+        $params = session_get_cookie_params();
+        setcookie(session_name(), $id, [
+            'expires' => time() + $lifetime,
+            'path' => $params['path'] ?: '/',
+            'domain' => $params['domain'] ?? '',
+            'secure' => $secure,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
     }
 
     private static function allowLoginAttempt(): bool

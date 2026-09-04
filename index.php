@@ -27,8 +27,14 @@ $router->post('/archivos', [$archives, 'store']);
 $router->post('/archivos/eliminar-lote', [$archives, 'destroyMany']);
 $router->get('/archivos/{id}', [$archives, 'show']);
 $router->get('/archivos/{id}/editar', [$archives, 'edit']);
+$router->get('/archivos/{id}/series/nueva', [$archives, 'createSeries']);
+$router->get('/archivos/{id}/series/{sid}/editar', [$archives, 'editSeries']);
 $router->post('/archivos/{id}', [$archives, 'update']);
 $router->post('/archivos/{id}/eliminar', [$archives, 'destroy']);
+$router->post('/archivos/{id}/series', [$archives, 'storeSeries']);
+$router->post('/archivos/{id}/series/eliminar-lote', [$archives, 'destroyManySeries']);
+$router->post('/archivos/{id}/series/{sid}', [$archives, 'updateSeries']);
+$router->post('/archivos/{id}/series/{sid}/eliminar', [$archives, 'destroySeries']);
 
 $lines = new TimelineController();
 $router->get('/lineas', [$lines, 'index']);
@@ -38,6 +44,7 @@ $router->post('/lineas/eliminar-lote', [$lines, 'destroyMany']);
 $router->get('/lineas/{id}', [$lines, 'show']);
 $router->get('/lineas/{id}/editar', [$lines, 'edit']);
 $router->post('/lineas/{id}', [$lines, 'update']);
+$router->post('/lineas/{id}/serie', [$lines, 'assignSeries']);
 $router->post('/lineas/{id}/eliminar', [$lines, 'destroy']);
 $router->post('/lineas/{id}/duplicar', [$lines, 'duplicate']);
 $router->get('/lineas/{id}/exportar.json', [$lines, 'exportJson']);
@@ -69,5 +76,7 @@ $router->get('/ajustes', [$settings, 'index']);
 $router->post('/ajustes/perfil', [$settings, 'updateProfile']);
 $router->post('/ajustes/password', [$settings, 'updatePassword']);
 $router->post('/ajustes/preferencias', [$settings, 'updatePreferences']);
+
+$router->get('/media/{folder}/{file}', [new MediaController(), 'show']);
 
 $router->dispatch(request_method(), $_SERVER['REQUEST_URI'] ?? '/');

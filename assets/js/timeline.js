@@ -91,6 +91,7 @@
             lane += 1;
             html += '<div class="tl-h-dot" style="left:' + (left - 4) + 'px"></div>';
             html += '<a class="tl-h-event' + (ev.is_milestone ? ' is-mile' : '') + '" href="' + ev.url + '" style="left:' + left + 'px;top:' + top + 'px;--cat:' + (ev.color || '#C9B58A') + '">';
+            if (ev.image) html += '<img src="' + ev.image + '" alt="">';
             html += '<small>' + (ev.label || '') + '</small><strong>' + ev.title + '</strong>';
             html += '</a>';
         });

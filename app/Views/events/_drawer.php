@@ -65,7 +65,10 @@ $action = $isEdit
             <input type="url" name="video_url" value="<?= e((string) ($ev['video_url'] ?? '')) ?>">
         </label>
         <label>Imagen
-            <input type="file" name="image" accept="image/*">
+            <?php if (!empty($ev['image'])): ?>
+                <img class="media-preview" src="<?= e(media_url((string) $ev['image'])) ?>" alt="Imagen actual">
+            <?php endif; ?>
+            <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif">
         </label>
         <label>Notas privadas
             <textarea name="notes" rows="3"><?= e((string) ($ev['notes'] ?? '')) ?></textarea>

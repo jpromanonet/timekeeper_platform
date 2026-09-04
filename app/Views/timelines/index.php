@@ -9,8 +9,15 @@
 <?php
 $grouped = [];
 foreach ($timelines as $tl) {
-    $key = $tl['collection_name'] ?: 'Sin archivo';
-    $grouped[$key][] = $tl;
+    $archive = (string) ($tl['collection_name'] ?: 'Sin archivo');
+    if (!isset($grouped[$archive])) {
+        $grouped[$archive] = ['series' => [], 'loose' => []];
+    }
+    if (!empty($tl['series_name'])) {
+        $grouped[$archive]['series'][(string) $tl['series_name']][] = $tl;
+    } else {
+        $grouped[$archive]['loose'][] = $tl;
+    }
 }
 ?>
 
@@ -20,25 +27,50 @@ foreach ($timelines as $tl) {
     <?= route_field('/lineas/eliminar-lote') ?>
     <input type="hidden" name="back" value="/lineas">
     <?php $selectLabel = 'Seleccionar líneas'; $deleteLabel = 'Eliminar líneas'; require dirname(__DIR__) . '/partials/bulk_bar.php'; ?>
-    <?php foreach ($grouped as $group => $items): ?>
-        <h2 class="section-title"><?= e($group) ?></h2>
-        <div class="stack-cards">
-            <?php foreach ($items as $tl): ?>
-                <div class="line-row">
-                    <label class="tick" title="Seleccionar">
-                        <input type="checkbox" name="ids[]" value="<?= (int) $tl['id'] ?>">
-                    </label>
-                    <a class="line-row-main" href="<?= e(url('/lineas/' . (int) $tl['id'])) ?>">
-                        <span class="dot" style="background: <?= e((string) $tl['color']) ?>"></span>
-                        <span>
-                            <strong><?= e((string) $tl['name']) ?></strong>
-                            <span class="muted"> · <?= e(status_label((string) $tl['status'])) ?></span>
-                        </span>
-                        <span class="muted"><?= (int) $tl['event_count'] ?> eventos</span>
-                    </a>
-                </div>
-            <?php endforeach; ?>
-        </div>
+    <?php foreach ($grouped as $archiveName => $bucket): ?>
+        <h2 class="section-title"><?= e($archiveName) ?></h2>
+        <?php foreach ($bucket['series'] as $serieName => $items): ?>
+            <h3 class="serie-title"><?= e($serieName) ?></h3>
+            <div class="stack-cards">
+                <?php foreach ($items as $tl): ?>
+                    <div class="line-row">
+                        <label class="tick" title="Seleccionar">
+                            <input type="checkbox" name="ids[]" value="<?= (int) $tl['id'] ?>">
+                        </label>
+                        <a class="line-row-main" href="<?= e(url('/lineas/' . (int) $tl['id'])) ?>">
+                            <span class="dot" style="background: <?= e((string) $tl['color']) ?>"></span>
+                            <span>
+                                <strong><?= e((string) $tl['name']) ?></strong>
+                                <span class="muted"> · <?= e(status_label((string) $tl['status'])) ?></span>
+                            </span>
+                            <span class="muted"><?= (int) $tl['event_count'] ?> eventos</span>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endforeach; ?>
+        <?php if ($bucket['loose']): ?>
+            <?php if ($bucket['series']): ?>
+                <h3 class="serie-title">Sin serie</h3>
+            <?php endif; ?>
+            <div class="stack-cards">
+                <?php foreach ($bucket['loose'] as $tl): ?>
+                    <div class="line-row">
+                        <label class="tick" title="Seleccionar">
+                            <input type="checkbox" name="ids[]" value="<?= (int) $tl['id'] ?>">
+                        </label>
+                        <a class="line-row-main" href="<?= e(url('/lineas/' . (int) $tl['id'])) ?>">
+                            <span class="dot" style="background: <?= e((string) $tl['color']) ?>"></span>
+                            <span>
+                                <strong><?= e((string) $tl['name']) ?></strong>
+                                <span class="muted"> · <?= e(status_label((string) $tl['status'])) ?></span>
+                            </span>
+                            <span class="muted"><?= (int) $tl['event_count'] ?> eventos</span>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
     <?php endforeach; ?>
 </form>
 <?php else: ?>

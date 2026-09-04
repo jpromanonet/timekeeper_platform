@@ -1,11 +1,13 @@
 <?php
 $isEdit = !empty($timeline);
 $collectionId = $timeline['collection_id'] ?? $preselect;
+$seriesList = $seriesList ?? [];
+$seriesId = $timeline['series_id'] ?? ($preselectSeries ?? null);
 ?>
 <div class="page-head">
     <h1><?= $isEdit ? 'Editar línea' : 'Nueva línea' ?></h1>
 </div>
-<form class="panel form-grid" method="post" action="<?= e(form_action()) ?>" enctype="multipart/form-data">
+<form class="panel form-grid" method="post" action="<?= e(form_action()) ?>" enctype="multipart/form-data" data-series-form>
     <?= csrf_field() ?>
     <?= route_field($isEdit ? '/lineas/' . (int) $timeline['id'] : '/lineas') ?>
     <label>Nombre
@@ -23,6 +25,20 @@ $collectionId = $timeline['collection_id'] ?? $preselect;
                 </option>
             <?php endforeach; ?>
         </select>
+    </label>
+    <label data-series-wrap>
+        Serie <span class="muted">(opcional)</span>
+        <select name="series_id">
+            <option value="">— Sin serie —</option>
+            <?php foreach ($seriesList as $serie): ?>
+                <option
+                    value="<?= (int) $serie['id'] ?>"
+                    data-archive="<?= (int) $serie['collection_id'] ?>"
+                    <?= ((int) $seriesId === (int) $serie['id']) ? 'selected' : '' ?>
+                ><?= e((string) $serie['name']) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <span class="muted">¿A qué serie la agregás? Podés dejarla suelta en el archivo.</span>
     </label>
     <fieldset>
         <legend>Icono</legend>
@@ -70,7 +86,10 @@ $collectionId = $timeline['collection_id'] ?? $preselect;
         </label>
     <?php endif; ?>
     <label>Portada
-        <input type="file" name="cover" accept="image/*">
+        <?php if (!empty($timeline['cover_image'])): ?>
+            <img class="media-preview" src="<?= e(media_url((string) $timeline['cover_image'])) ?>" alt="Portada actual">
+        <?php endif; ?>
+        <input type="file" name="cover" accept="image/jpeg,image/png,image/webp,image/gif">
     </label>
     <div class="btn-row">
         <button class="btn btn-primary" type="submit">Guardar</button>

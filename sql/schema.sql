@@ -54,10 +54,26 @@ CREATE TABLE IF NOT EXISTS collections (
   CONSTRAINT fk_col_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS series (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  collection_id BIGINT UNSIGNED NOT NULL,
+  name VARCHAR(160) NOT NULL,
+  color VARCHAR(16) NOT NULL DEFAULT '#C9B58A',
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_series_col_name (collection_id, name),
+  KEY idx_series_user (user_id, collection_id, sort_order),
+  CONSTRAINT fk_series_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_series_col FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS timelines (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT UNSIGNED NOT NULL,
   collection_id BIGINT UNSIGNED NULL,
+  series_id BIGINT UNSIGNED NULL,
   name VARCHAR(190) NOT NULL,
   slug VARCHAR(190) NOT NULL,
   description TEXT NULL,
@@ -76,9 +92,11 @@ CREATE TABLE IF NOT EXISTS timelines (
   UNIQUE KEY uq_tl_user_slug (user_id, slug),
   KEY idx_tl_user (user_id, status, sort_order),
   KEY idx_tl_col (collection_id),
+  KEY idx_tl_series (series_id),
   KEY idx_tl_deleted (deleted_at),
   CONSTRAINT fk_tl_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT fk_tl_col FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE SET NULL
+  CONSTRAINT fk_tl_col FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE SET NULL,
+  CONSTRAINT fk_tl_series FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS categories (

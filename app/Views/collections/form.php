@@ -2,7 +2,7 @@
 <div class="page-head">
     <h1><?= $isEdit ? 'Editar archivo' : 'Nuevo archivo' ?></h1>
 </div>
-<form class="panel form-grid" method="post" action="<?= e(form_action()) ?>" enctype="multipart/form-data">
+<form class="panel form-grid" method="post" action="<?= e(form_action()) ?>">
     <?= csrf_field() ?>
     <?= route_field($isEdit ? '/archivos/' . (int) $archive['id'] : '/archivos') ?>
     <label>Nombre
@@ -25,9 +25,6 @@
     </fieldset>
     <label>Color
         <input type="color" name="color" value="<?= e((string) ($archive['color'] ?? '#91A7C4')) ?>">
-    </label>
-    <label>Imagen opcional
-        <input type="file" name="cover" accept="image/*">
     </label>
     <div class="btn-row">
         <button class="btn btn-primary" type="submit">Guardar</button>

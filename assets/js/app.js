@@ -187,10 +187,30 @@
         form.addEventListener('submit', () => beep(520, 50));
     });
 
+    function bulkBoxes(form) {
+        const inside = Array.from(form.querySelectorAll('input[name="ids[]"]'));
+        if (!form.id) {
+            return inside;
+        }
+        const outside = Array.from(document.querySelectorAll('input[name="ids[]"][form="' + form.id + '"]'));
+        return inside.concat(outside);
+    }
+
+    function bulkSubmitBtn(form) {
+        const inside = form.querySelector('[data-bulk-submit]');
+        if (inside) {
+            return inside;
+        }
+        if (!form.id) {
+            return null;
+        }
+        return document.querySelector('[data-bulk-submit][form="' + form.id + '"]');
+    }
+
     function syncBulk(form) {
-        const boxes = form.querySelectorAll('input[name="ids[]"]');
-        const checked = form.querySelectorAll('input[name="ids[]"]:checked');
-        const submit = form.querySelector('[data-bulk-submit]');
+        const boxes = bulkBoxes(form);
+        const checked = boxes.filter((box) => box.checked);
+        const submit = bulkSubmitBtn(form);
         const master = form.querySelector('[data-select-all]');
         if (submit) submit.disabled = checked.length === 0;
         if (master && boxes.length) {
@@ -211,20 +231,50 @@
         document.querySelectorAll('details.drop[open]').forEach((drop) => drop.removeAttribute('open'));
     });
 
+    document.querySelectorAll('form[data-series-form]').forEach((form) => {
+        const archive = form.querySelector('[name="collection_id"]');
+        const series = form.querySelector('[name="series_id"]');
+        const wrap = form.querySelector('[data-series-wrap]');
+        if (!archive || !series || !wrap) return;
+
+        function syncSeries() {
+            const cid = archive.value;
+            wrap.hidden = !cid;
+            wrap.style.display = cid ? '' : 'none';
+            series.querySelectorAll('option[data-archive]').forEach((opt) => {
+                const show = cid !== '' && opt.getAttribute('data-archive') === cid;
+                opt.hidden = !show;
+                opt.disabled = !show;
+            });
+            const selected = series.selectedOptions[0];
+            if (!cid || (selected && selected.disabled)) {
+                series.value = '';
+            }
+        }
+
+        archive.addEventListener('change', syncSeries);
+        syncSeries();
+    });
+
     document.querySelectorAll('form[data-bulk]').forEach((form) => {
         syncBulk(form);
-        form.addEventListener('change', () => syncBulk(form));
+        form.addEventListener('change', (e) => {
+            if (e.target && e.target.classList && e.target.classList.contains('serie-pick')) {
+                return;
+            }
+            syncBulk(form);
+        });
         const master = form.querySelector('[data-select-all]');
         if (master) {
             master.addEventListener('change', () => {
-                form.querySelectorAll('input[name="ids[]"]').forEach((box) => {
+                bulkBoxes(form).forEach((box) => {
                     box.checked = master.checked;
                 });
                 syncBulk(form);
             });
         }
         form.addEventListener('submit', (e) => {
-            const n = form.querySelectorAll('input[name="ids[]"]:checked').length;
+            const n = bulkBoxes(form).filter((box) => box.checked).length;
             if (n < 1) {
                 e.preventDefault();
                 return;
@@ -234,5 +284,20 @@
                 e.preventDefault();
             }
         });
+    });
+
+    document.addEventListener('change', (e) => {
+        const target = e.target;
+        if (!target || target.name !== 'ids[]') {
+            return;
+        }
+        const formId = target.getAttribute('form');
+        if (!formId) {
+            return;
+        }
+        const owner = document.getElementById(formId);
+        if (owner && owner.hasAttribute('data-bulk')) {
+            syncBulk(owner);
+        }
     });
 })();

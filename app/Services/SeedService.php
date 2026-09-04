@@ -43,22 +43,29 @@ final class SeedService
         $libros = self::collection($userId, 'Libros', 'Universos narrativos en construcción.', 'book', '#A99BC2', 3);
         $historia = self::collection($userId, 'Historia', 'Argentina, guerras y computación.', 'scroll', '#C9B58A', 4);
 
+        $soupEmpresa = self::series($userId, $soup, 'Empresa', '#91A7C4');
+        $soupOps = self::series($userId, $soup, 'Operación', '#C9B58A');
+        $librosTyC = self::series($userId, $libros, 'Treinta y Cinco', '#A99BC2');
+        $librosOtras = self::series($userId, $libros, 'Otras sagas', '#C3909B');
+        $histTerritorio = self::series($userId, $historia, 'Territorio', '#C9B58A');
+        $histMundo = self::series($userId, $historia, 'Mundo', '#B78972');
+
         $personal = self::timeline($userId, $vida, 'Vida personal', 'Mudanzas, familia y bases.', 'hourglass', '#C3909B', ['Personales', 'Familia', 'Ciudad']);
         $carrera = self::timeline($userId, $vida, 'Carrera profesional', 'Oficios, cargos y giros.', 'sword', '#B78972', ['Trabajo', 'Oficio', 'Hitos']);
         $estudios = self::timeline($userId, $vida, 'Estudios', 'Formación y lecturas que marcaron época.', 'book', '#9FB59D', ['Estudios', 'Lectura']);
 
-        $histEmp = self::timeline($userId, $soup, 'Historia de la empresa', 'De la idea al primer cliente.', 'castle', '#91A7C4', ['Hitos', 'Equipo', 'Negocios']);
-        $clientes = self::timeline($userId, $soup, 'Clientes', 'Relaciones comerciales.', 'coin', '#C9B58A', ['Clientes', 'Contratos']);
-        $productos = self::timeline($userId, $soup, 'Productos', 'Puestito y el resto del catálogo.', 'chest', '#A99BC2', ['Productos', 'Lanzamientos']);
-        $infra = self::timeline($userId, $soup, 'Infraestructura', 'Servidores, lab y herramientas internas.', 'shield', '#9FB59D', ['Infraestructura', 'Home lab']);
+        $histEmp = self::timeline($userId, $soup, 'Historia de la empresa', 'De la idea al primer cliente.', 'castle', '#91A7C4', ['Hitos', 'Equipo', 'Negocios'], $soupEmpresa);
+        $clientes = self::timeline($userId, $soup, 'Clientes', 'Relaciones comerciales.', 'coin', '#C9B58A', ['Clientes', 'Contratos'], $soupOps);
+        $productos = self::timeline($userId, $soup, 'Productos', 'Puestito y el resto del catálogo.', 'chest', '#A99BC2', ['Productos', 'Lanzamientos'], $soupOps);
+        $infra = self::timeline($userId, $soup, 'Infraestructura', 'Servidores, lab y herramientas internas.', 'shield', '#9FB59D', ['Infraestructura', 'Home lab'], $soupOps);
 
-        $t35 = self::timeline($userId, $libros, 'Treinta y Cinco', 'Línea del universo principal.', 'star', '#A99BC2', ['Diego', 'Astrid', 'Argentina', 'Cabina']);
-        $vamp = self::timeline($userId, $libros, 'Universo Vampiros', 'Cronología oculta.', 'flame', '#C3909B', ['Personajes', 'Lore']);
-        $saga = self::timeline($userId, $libros, 'Saga Argentina', 'Historia y ficción entrelazadas.', 'map', '#B78972', ['Argentina', 'Economía']);
+        $t35 = self::timeline($userId, $libros, 'Treinta y Cinco', 'Línea del universo principal.', 'star', '#A99BC2', ['Diego', 'Astrid', 'Argentina', 'Cabina'], $librosTyC);
+        $vamp = self::timeline($userId, $libros, 'Universo Vampiros', 'Cronología oculta.', 'flame', '#C3909B', ['Personajes', 'Lore'], $librosOtras);
+        $saga = self::timeline($userId, $libros, 'Saga Argentina', 'Historia y ficción entrelazadas.', 'map', '#B78972', ['Argentina', 'Economía'], $librosOtras);
 
-        $arg = self::timeline($userId, $historia, 'Argentina', 'Hitos políticos y sociales.', 'map', '#C9B58A', ['Política', 'Crisis', 'Cultura']);
-        $ww2 = self::timeline($userId, $historia, 'Segunda Guerra Mundial', '1939–1945 y consecuencias.', 'shield', '#B78972', ['Europa', 'Frentes']);
-        $comp = self::timeline($userId, $historia, 'Historia de la computación', 'De ENIAC a la web.', 'hourglass', '#91A7C4', ['Hardware', 'Redes', 'Software']);
+        $arg = self::timeline($userId, $historia, 'Argentina', 'Hitos políticos y sociales.', 'map', '#C9B58A', ['Política', 'Crisis', 'Cultura'], $histTerritorio);
+        $ww2 = self::timeline($userId, $historia, 'Segunda Guerra Mundial', '1939–1945 y consecuencias.', 'shield', '#B78972', ['Europa', 'Frentes'], $histMundo);
+        $comp = self::timeline($userId, $historia, 'Historia de la computación', 'De ENIAC a la web.', 'hourglass', '#91A7C4', ['Hardware', 'Redes', 'Software'], $histMundo);
 
         $sueltas = self::timeline($userId, null, 'Notas sueltas', 'Línea independiente, sin archivo.', 'scroll', '#AAA7A0', ['Notas']);
 
@@ -263,10 +270,19 @@ final class SeedService
         ]);
     }
 
-    private static function timeline(int $userId, ?int $collectionId, string $name, string $description, string $icon, string $color, array $categories): int
+    private static function series(int $userId, int $collectionId, string $name, string $color): int
+    {
+        return SeriesService::create($userId, $collectionId, [
+            'name' => $name,
+            'color' => $color,
+        ]);
+    }
+
+    private static function timeline(int $userId, ?int $collectionId, string $name, string $description, string $icon, string $color, array $categories, ?int $seriesId = null): int
     {
         $id = TimelineService::create($userId, [
             'collection_id' => $collectionId,
+            'series_id' => $seriesId,
             'name' => $name,
             'description' => $description,
             'icon' => $icon,

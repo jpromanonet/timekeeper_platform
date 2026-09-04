@@ -23,7 +23,9 @@ require_once __DIR__ . '/Services/DatePrecision.php';
 require_once __DIR__ . '/Services/UploadService.php';
 require_once __DIR__ . '/Services/PreferenceService.php';
 require_once __DIR__ . '/Services/CollectionService.php';
+require_once __DIR__ . '/Services/SeriesService.php';
 require_once __DIR__ . '/Services/TimelineService.php';
+require_once __DIR__ . '/Services/SchemaService.php';
 require_once __DIR__ . '/Services/CategoryService.php';
 require_once __DIR__ . '/Services/TagService.php';
 require_once __DIR__ . '/Services/EventService.php';
@@ -45,6 +47,7 @@ foreach ([
     'TrashController',
     'FavoritesController',
     'MetricsController',
+    'MediaController',
 ] as $controller) {
     require_once __DIR__ . '/Controllers/' . $controller . '.php';
 }
@@ -60,6 +63,7 @@ if (PHP_SAPI !== 'cli') {
 
 try {
     Database::connect($dbConfig);
+    SchemaService::ensure();
 } catch (Throwable $e) {
     if (PHP_SAPI === 'cli') {
         fwrite(STDERR, 'DB error: ' . $e->getMessage() . PHP_EOL);

@@ -227,6 +227,7 @@ final class EventService
                 'category_id' => $ev['category_id'] !== null ? (int) $ev['category_id'] : null,
                 'tags' => $ev['tag_list'] ?? [],
                 'location' => $ev['location'],
+                'image' => !empty($ev['image']) ? media_url((string) $ev['image']) : null,
                 'url' => url('/lineas/' . (int) $ev['timeline_id'] . '?evento=' . (int) $ev['id']),
             ];
         }

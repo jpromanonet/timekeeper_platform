@@ -78,7 +78,7 @@ final class CollectionService
     public static function destroy(int $userId, int $id): void
     {
         $pdo = Database::pdo();
-        $pdo->prepare('UPDATE timelines SET collection_id = NULL WHERE collection_id = :id AND user_id = :uid')
+        $pdo->prepare('UPDATE timelines SET collection_id = NULL, series_id = NULL WHERE collection_id = :id AND user_id = :uid')
             ->execute(['id' => $id, 'uid' => $userId]);
         $pdo->prepare('DELETE FROM collections WHERE id = :id AND user_id = :uid')
             ->execute(['id' => $id, 'uid' => $userId]);

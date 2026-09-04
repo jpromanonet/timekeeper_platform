@@ -8,6 +8,8 @@ require_once __DIR__ . '/app/helpers.php';
 require_once __DIR__ . '/app/Services/DatePrecision.php';
 require_once __DIR__ . '/app/Services/PreferenceService.php';
 require_once __DIR__ . '/app/Services/CollectionService.php';
+require_once __DIR__ . '/app/Services/SeriesService.php';
+require_once __DIR__ . '/app/Services/SchemaService.php';
 require_once __DIR__ . '/app/Services/TimelineService.php';
 require_once __DIR__ . '/app/Services/CategoryService.php';
 require_once __DIR__ . '/app/Services/TagService.php';
@@ -55,6 +57,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $applied++;
         }
         $messages[] = "Esquema aplicado ({$applied} sentencias).";
+        SchemaService::ensure();
         $report = SeedService::run($pdo);
         $messages[] = $report['seeded']
             ? 'Datos de ejemplo cargados.'
@@ -74,6 +77,19 @@ try {
 } catch (Throwable) {
     $already = false;
 }
+
+$storageNotes = [];
+$storageRoot = __DIR__ . '/storage';
+foreach (['covers', 'events', 'avatars'] as $sub) {
+    $dir = $storageRoot . '/' . $sub;
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0777, true);
+    }
+    @chmod($dir, 0777);
+    $storageNotes[$sub] = is_dir($dir) && is_writable($dir);
+}
+@chmod($storageRoot, 0777);
+$storageOk = !in_array(false, $storageNotes, true);
 ?>
 <!DOCTYPE html>
 <html lang="es" data-theme="archivist">
@@ -94,6 +110,16 @@ try {
     </div>
     <div class="panel auth-panel">
         <p>Crea la base <strong><?= e((string) $dbConfig['name']) ?></strong>, aplica el esquema y carga un archivo de ejemplo.</p>
+        <?php if (!$storageOk): ?>
+            <div class="flash flash-err">
+                <p>El servidor no puede guardar imágenes. La carpeta <code>storage/</code> tiene que ser escribible.</p>
+                <ul>
+                    <?php foreach ($storageNotes as $name => $okDir): ?>
+                        <li><?= e($name) ?>: <?= $okDir ? 'ok' : 'sin permiso' ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
         <?php if ($ok): ?>
             <div class="flash flash-ok">
                 <ul>

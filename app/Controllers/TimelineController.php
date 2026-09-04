@@ -24,7 +24,9 @@ final class TimelineController
             'currentNav' => 'timelines',
             'timeline' => null,
             'archives' => CollectionService::all(Auth::id()),
+            'seriesList' => SeriesService::allForUser(Auth::id()),
             'preselect' => int_or_null(input('archivo')),
+            'preselectSeries' => int_or_null(input('serie')),
             'prefs' => $prefs,
         ]);
     }
@@ -124,7 +126,9 @@ final class TimelineController
             'currentNav' => 'timelines',
             'timeline' => $timeline,
             'archives' => CollectionService::all(Auth::id()),
+            'seriesList' => SeriesService::allForUser(Auth::id()),
             'preselect' => null,
+            'preselectSeries' => null,
             'prefs' => Auth::prefs(),
             'categories' => CategoryService::forTimeline((int) $id),
         ]);
@@ -154,6 +158,22 @@ final class TimelineController
         TimelineService::update(Auth::id(), (int) $id, $data);
         flash('success', 'Línea actualizada.');
         redirect('/lineas/' . $id);
+    }
+
+    public function assignSeries(string $id): void
+    {
+        Auth::requireLogin();
+        verify_csrf();
+        $timeline = TimelineService::find(Auth::id(), (int) $id);
+        if (!$timeline) {
+            redirect('/lineas');
+        }
+        TimelineService::assignSeries(Auth::id(), (int) $id, int_or_null(input('series_id')));
+        flash('success', 'Serie actualizada.');
+        $fallback = !empty($timeline['collection_id'])
+            ? '/archivos/' . (int) $timeline['collection_id']
+            : '/lineas';
+        redirect(safe_return_path($fallback));
     }
 
     public function destroy(string $id): void
@@ -280,11 +300,13 @@ final class TimelineController
                 $cid = null;
             }
         }
+        $sid = SeriesService::resolveForTimeline(Auth::id(), $cid, input('series_id'));
         $start = DatePrecision::parse((string) input('start_date', ''));
         $end = DatePrecision::parse((string) input('end_date', ''));
 
         return [
             'collection_id' => $cid,
+            'series_id' => $sid,
             'name' => mb_substr(trim((string) input('name', '')), 0, 190),
             'description' => null_if_blank((string) input('description', '')),
             'icon' => in_array($icon, $icons, true) ? $icon : 'hourglass',

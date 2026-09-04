@@ -1,5 +1,8 @@
 <?php
-$crumb = trim(($timeline['collection_name'] ? $timeline['collection_name'] . ' / ' : '') . $timeline['name']);
+$kicker = trim(($timeline['collection_name'] ?? '') . (($timeline['series_name'] ?? '') ? ' / ' . $timeline['series_name'] : ''));
+if ($kicker === '') {
+    $kicker = 'LÍNEA INDEPENDIENTE';
+}
 $qs = $_GET;
 unset($qs['r'], $qs['nuevo'], $qs['evento']);
 $baseQuery = $qs;
@@ -10,9 +13,12 @@ $side = 0;
 ?>
 <div class="tl-head">
     <div>
-        <p class="kicker"><?= e((string) ($timeline['collection_name'] ?? 'LÍNEA INDEPENDIENTE')) ?></p>
+        <p class="kicker"><?= e($kicker) ?></p>
         <h1><?= e((string) $timeline['name']) ?></h1>
         <?php if ($timeline['description']): ?><p class="lede"><?= e((string) $timeline['description']) ?></p><?php endif; ?>
+        <?php if (!empty($timeline['cover_image'])): ?>
+            <img class="cover-banner" src="<?= e(media_url((string) $timeline['cover_image'])) ?>" alt="">
+        <?php endif; ?>
     </div>
     <div class="btn-row">
         <a class="btn btn-primary" href="<?= e(url('/lineas/' . (int) $timeline['id'] . '?' . http_build_query($newQs))) ?>" id="newEventBtn"><?= icon('plus', 14) ?> Nuevo evento</a>
@@ -105,6 +111,9 @@ $side = 0;
                     <a class="tl-card" href="<?= e(url('/lineas/' . (int) $timeline['id'] . '?evento=' . (int) $ev['id'])) ?>" style="--cat: <?= e((string) $color) ?>">
                         <header><?= e($label) ?></header>
                         <h3><?= e((string) $ev['title']) ?></h3>
+                        <?php if (!empty($ev['image'])): ?>
+                            <img class="tl-photo" src="<?= e(media_url((string) $ev['image'])) ?>" alt="">
+                        <?php endif; ?>
                         <?php if ($ev['summary']): ?><p><?= e((string) $ev['summary']) ?></p><?php endif; ?>
                         <footer>
                             <?php if ($ev['category_name']): ?><span class="chip"><?= e((string) $ev['category_name']) ?></span><?php endif; ?>

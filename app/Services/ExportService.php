@@ -50,6 +50,7 @@ final class ExportService
                 'date_format' => $timeline['date_format'],
                 'status' => $timeline['status'],
                 'archive' => $timeline['collection_name'],
+                'series' => $timeline['series_name'] ?? null,
             ],
             'categories' => array_map(static fn (array $c): array => [
                 'name' => $c['name'],

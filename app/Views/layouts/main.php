@@ -49,7 +49,11 @@ $tagline = (string) app_config('tagline', 'Colección personal');
         </nav>
         <div class="sidebar-foot">
             <div class="user-chip">
-                <span class="avatar"><?= e(initials((string) ($user['name'] ?? 'TK'))) ?></span>
+                <?php if (!empty($user['avatar'])): ?>
+                    <span class="avatar is-photo"><img src="<?= e(media_url((string) $user['avatar'])) ?>" alt=""></span>
+                <?php else: ?>
+                    <span class="avatar"><?= e(initials((string) ($user['name'] ?? 'TK'))) ?></span>
+                <?php endif; ?>
                 <span class="user-name"><?= e((string) ($user['name'] ?? '')) ?></span>
             </div>
             <form method="post" action="<?= e(form_action()) ?>">

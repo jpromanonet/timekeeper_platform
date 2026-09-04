@@ -377,7 +377,10 @@ function media_url(?string $path): string
     if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
         return $path;
     }
-    return url('/storage/' . ltrim($path, '/'));
+    $relative = ltrim(str_replace('\\', '/', $path), '/');
+    $absolute = dirname(__DIR__) . '/storage/' . $relative;
+    $version = is_file($absolute) ? (string) filemtime($absolute) : (string) time();
+    return url('/media/' . $relative . '?v=' . $version);
 }
 
 function current_route(): string
@@ -410,8 +413,22 @@ function safe_return_path(string $default): string
     if ($back === '/' || $back === '/archivos' || $back === '/lineas') {
         return $back;
     }
-    if (preg_match('#^/(archivos|lineas)/\d+$#', $back) === 1) {
+    if (preg_match('#^/(archivos|lineas)/\d+$#', explode('?', $back, 2)[0]) !== 1) {
+        return $default;
+    }
+    if (!str_contains($back, '?')) {
         return $back;
     }
-    return $default;
+    parse_str((string) (explode('?', $back, 2)[1] ?? ''), $query);
+    $allowed = [];
+    $serie = (string) ($query['serie'] ?? '');
+    if ($serie === 'none' || ctype_digit($serie)) {
+        $allowed['serie'] = $serie;
+    }
+    $linea = (string) ($query['linea'] ?? '');
+    if (ctype_digit($linea)) {
+        $allowed['linea'] = $linea;
+    }
+    $path = explode('?', $back, 2)[0];
+    return $allowed === [] ? $path : $path . '?' . http_build_query($allowed);
 }

@@ -8,6 +8,7 @@ Timekeeper guarda lo que no entra en un calendario: una vida, una empresa, un li
 
 - **Colección.** Tu espacio. Ahí entrás.
 - **Archivos.** Carpetas temáticas: *Mi vida*, *Soup IT*, *Historia*.
+- **Series.** Grupos de líneas dentro de un archivo. Opcional.
 - **Líneas.** Una cronología dentro de un archivo, o suelta.
 - **Eventos.** Lo que pasó. Título, resumen, gente, lugar, categoría, tags.
 
@@ -42,3 +43,5 @@ Hace falta PHP 8+ y MySQL o MariaDB, en local o en el homelab.
    o registrá la tuya.
 
 Las URLs salen del request: no hay IP ni hostname fijos. Sirve `localhost` o `192.168.x.x`.
+
+La carpeta `storage/` (covers, events, avatars) tiene que ser escribible por el servidor web para las imágenes.

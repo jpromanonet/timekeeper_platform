@@ -14,7 +14,10 @@
             <input type="email" name="email" required maxlength="190" value="<?= e((string) ($account['email'] ?? '')) ?>" autocomplete="email">
         </label>
         <label>Avatar
-            <input type="file" name="avatar" accept="image/*">
+            <?php if (!empty($account['avatar'])): ?>
+                <img class="media-preview media-preview-avatar" src="<?= e(media_url((string) $account['avatar'])) ?>" alt="Avatar actual">
+            <?php endif; ?>
+            <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif">
         </label>
         <button class="btn btn-primary" type="submit">Guardar perfil</button>
     </form>

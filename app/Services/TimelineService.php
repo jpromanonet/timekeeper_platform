@@ -7,16 +7,20 @@ final class TimelineService
     public static function all(int $userId, bool $includeDeleted = false): array
     {
         $sql = 'SELECT t.*, c.name AS collection_name, c.color AS collection_color,
+                       s.name AS series_name, s.color AS series_color,
                        (SELECT COUNT(*) FROM events e WHERE e.timeline_id = t.id AND e.deleted_at IS NULL) AS event_count,
                        (SELECT MIN(e.start_date) FROM events e WHERE e.timeline_id = t.id AND e.deleted_at IS NULL AND e.start_date IS NOT NULL) AS first_event,
                        (SELECT MAX(COALESCE(e.end_date, e.start_date)) FROM events e WHERE e.timeline_id = t.id AND e.deleted_at IS NULL) AS last_event
                 FROM timelines t
                 LEFT JOIN collections c ON c.id = t.collection_id
+                LEFT JOIN `series` s ON s.id = t.series_id
                 WHERE t.user_id = :uid';
         if (!$includeDeleted) {
             $sql .= ' AND t.deleted_at IS NULL';
         }
-        $sql .= ' ORDER BY (t.collection_id IS NULL), c.sort_order, t.sort_order, t.name';
+        $sql .= ' ORDER BY (t.collection_id IS NULL), c.sort_order, c.name,
+                          (t.series_id IS NULL), s.sort_order, s.name,
+                          t.sort_order, t.name';
         $stmt = Database::pdo()->prepare($sql);
         $stmt->execute(['uid' => $userId]);
         return $stmt->fetchAll() ?: [];
@@ -38,13 +42,14 @@ final class TimelineService
     public static function forCollection(int $userId, int $collectionId): array
     {
         $stmt = Database::pdo()->prepare(
-            'SELECT t.*,
+            'SELECT t.*, s.name AS series_name, s.color AS series_color,
                     (SELECT COUNT(*) FROM events e WHERE e.timeline_id = t.id AND e.deleted_at IS NULL) AS event_count,
                     (SELECT MIN(e.start_date) FROM events e WHERE e.timeline_id = t.id AND e.deleted_at IS NULL AND e.start_date IS NOT NULL) AS first_event,
                     (SELECT MAX(COALESCE(e.end_date, e.start_date)) FROM events e WHERE e.timeline_id = t.id AND e.deleted_at IS NULL) AS last_event
              FROM timelines t
+             LEFT JOIN `series` s ON s.id = t.series_id
              WHERE t.user_id = :uid AND t.collection_id = :cid AND t.deleted_at IS NULL
-             ORDER BY t.sort_order, t.name'
+             ORDER BY (t.series_id IS NULL), s.sort_order, s.name, t.sort_order, t.name'
         );
         $stmt->execute(['uid' => $userId, 'cid' => $collectionId]);
         return $stmt->fetchAll() ?: [];
@@ -52,9 +57,11 @@ final class TimelineService
 
     public static function find(int $userId, int $id, bool $includeDeleted = false): ?array
     {
-        $sql = 'SELECT t.*, c.name AS collection_name, c.color AS collection_color
+        $sql = 'SELECT t.*, c.name AS collection_name, c.color AS collection_color,
+                       s.name AS series_name, s.color AS series_color
                 FROM timelines t
                 LEFT JOIN collections c ON c.id = t.collection_id
+                LEFT JOIN `series` s ON s.id = t.series_id
                 WHERE t.id = :id AND t.user_id = :uid';
         if (!$includeDeleted) {
             $sql .= ' AND t.deleted_at IS NULL';
@@ -71,13 +78,14 @@ final class TimelineService
         $slug = self::uniqueSlug($userId, slugify((string) $data['name']));
         $stmt = Database::pdo()->prepare(
             'INSERT INTO timelines
-                (user_id, collection_id, name, slug, description, icon, color, cover_image, default_view, date_format, start_date, end_date, status, sort_order)
+                (user_id, collection_id, series_id, name, slug, description, icon, color, cover_image, default_view, date_format, start_date, end_date, status, sort_order)
              VALUES
-                (:uid, :cid, :name, :slug, :description, :icon, :color, :cover, :view, :format, :start, :end, :status, :ord)'
+                (:uid, :cid, :sid, :name, :slug, :description, :icon, :color, :cover, :view, :format, :start, :end, :status, :ord)'
         );
         $stmt->execute([
             'uid' => $userId,
             'cid' => $data['collection_id'],
+            'sid' => $data['series_id'] ?? null,
             'name' => $data['name'],
             'slug' => $slug,
             'description' => $data['description'],
@@ -94,6 +102,24 @@ final class TimelineService
         return (int) Database::pdo()->lastInsertId();
     }
 
+    public static function assignSeries(int $userId, int $id, ?int $seriesId): void
+    {
+        $current = self::find($userId, $id);
+        if (!$current) {
+            return;
+        }
+        $cid = $current['collection_id'] !== null ? (int) $current['collection_id'] : null;
+        $sid = SeriesService::resolveForTimeline($userId, $cid, $seriesId);
+        $stmt = Database::pdo()->prepare(
+            'UPDATE timelines SET series_id = :sid WHERE id = :id AND user_id = :uid AND deleted_at IS NULL'
+        );
+        $stmt->execute([
+            'sid' => $sid,
+            'id' => $id,
+            'uid' => $userId,
+        ]);
+    }
+
     public static function update(int $userId, int $id, array $data): void
     {
         $current = self::find($userId, $id);
@@ -106,13 +132,14 @@ final class TimelineService
         }
         $stmt = Database::pdo()->prepare(
             'UPDATE timelines SET
-                collection_id = :cid, name = :name, slug = :slug, description = :description,
+                collection_id = :cid, series_id = :sid, name = :name, slug = :slug, description = :description,
                 icon = :icon, color = :color, cover_image = COALESCE(:cover, cover_image),
                 default_view = :view, date_format = :format, start_date = :start, end_date = :end, status = :status
              WHERE id = :id AND user_id = :uid AND deleted_at IS NULL'
         );
         $stmt->execute([
             'cid' => $data['collection_id'],
+            'sid' => $data['series_id'] ?? null,
             'name' => $data['name'],
             'slug' => $slug,
             'description' => $data['description'],
@@ -190,6 +217,7 @@ final class TimelineService
         try {
             $newId = self::create($userId, [
                 'collection_id' => $source['collection_id'] !== null ? (int) $source['collection_id'] : null,
+                'series_id' => $source['series_id'] !== null ? (int) $source['series_id'] : null,
                 'name' => $source['name'] . ' (copia)',
                 'description' => $source['description'],
                 'icon' => $source['icon'],
