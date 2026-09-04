@@ -8,9 +8,11 @@
         <?= csrf_field() ?>
         <?= route_field('/ajustes/perfil') ?>
         <label>Nombre
-            <input type="text" name="name" required value="<?= e((string) ($account['name'] ?? '')) ?>">
+            <input type="text" name="name" required maxlength="160" value="<?= e((string) ($account['name'] ?? '')) ?>">
         </label>
-        <p class="muted"><?= e((string) ($account['email'] ?? '')) ?></p>
+        <label>Correo
+            <input type="email" name="email" required maxlength="190" value="<?= e((string) ($account['email'] ?? '')) ?>" autocomplete="email">
+        </label>
         <label>Avatar
             <input type="file" name="avatar" accept="image/*">
         </label>

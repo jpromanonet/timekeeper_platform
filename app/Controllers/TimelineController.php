@@ -165,6 +165,21 @@ final class TimelineController
         redirect('/lineas');
     }
 
+    public function destroyMany(): void
+    {
+        Auth::requireLogin();
+        verify_csrf();
+        $n = TimelineService::softDeleteMany(Auth::id(), input_id_list());
+        if ($n < 1) {
+            flash('error', 'No hay líneas seleccionadas.');
+            redirect(safe_return_path('/lineas'));
+        }
+        flash('success', $n === 1
+            ? 'Línea enviada a la papelera.'
+            : $n . ' líneas enviadas a la papelera.');
+        redirect(safe_return_path('/lineas'));
+    }
+
     public function duplicate(string $id): void
     {
         Auth::requireLogin();
@@ -188,6 +203,17 @@ final class TimelineController
     {
         Auth::requireLogin();
         ExportService::sendCsv(Auth::id(), (int) $id);
+    }
+
+    public function exportPdf(string $id): void
+    {
+        Auth::requireLogin();
+        try {
+            ExportService::sendPdf(Auth::id(), (int) $id);
+        } catch (RuntimeException $e) {
+            flash('error', $e->getMessage());
+            redirect('/lineas');
+        }
     }
 
     public function storeCategory(string $id): void

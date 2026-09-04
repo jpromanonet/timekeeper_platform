@@ -17,8 +17,19 @@ $side = 0;
     <div class="btn-row">
         <a class="btn btn-primary" href="<?= e(url('/lineas/' . (int) $timeline['id'] . '?' . http_build_query($newQs))) ?>" id="newEventBtn"><?= icon('plus', 14) ?> Nuevo evento</a>
         <a class="btn" href="<?= e(url('/lineas/' . (int) $timeline['id'] . '/editar')) ?>">Editar</a>
-        <a class="btn" href="<?= e(url('/lineas/' . (int) $timeline['id'] . '/exportar.json')) ?>">JSON</a>
-        <a class="btn" href="<?= e(url('/lineas/' . (int) $timeline['id'] . '/exportar.csv')) ?>">CSV</a>
+        <form method="post" action="<?= e(form_action()) ?>" onsubmit="return confirm('¿Enviar esta línea a la papelera?');">
+            <?= csrf_field() ?>
+            <?= route_field('/lineas/' . (int) $timeline['id'] . '/eliminar') ?>
+            <button class="btn btn-danger" type="submit">Eliminar</button>
+        </form>
+        <details class="drop">
+            <summary class="btn">Exportar</summary>
+            <div class="drop-menu" role="menu">
+                <a role="menuitem" href="<?= e(url('/lineas/' . (int) $timeline['id'] . '/exportar.json')) ?>">JSON <span>datos</span></a>
+                <a role="menuitem" href="<?= e(url('/lineas/' . (int) $timeline['id'] . '/exportar.csv')) ?>">CSV <span>hoja</span></a>
+                <a role="menuitem" href="<?= e(url('/lineas/' . (int) $timeline['id'] . '/exportar.pdf')) ?>">PDF <span>línea de tiempo</span></a>
+            </div>
+        </details>
     </div>
 </div>
 

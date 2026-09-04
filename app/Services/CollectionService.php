@@ -84,6 +84,20 @@ final class CollectionService
             ->execute(['id' => $id, 'uid' => $userId]);
     }
 
+    public static function destroyMany(int $userId, array $ids): int
+    {
+        $n = 0;
+        foreach ($ids as $id) {
+            $id = (int) $id;
+            if ($id < 1 || !self::find($userId, $id)) {
+                continue;
+            }
+            self::destroy($userId, $id);
+            $n++;
+        }
+        return $n;
+    }
+
     public static function names(int $userId): array
     {
         $stmt = Database::pdo()->prepare('SELECT id, name FROM collections WHERE user_id = :uid ORDER BY sort_order, name');

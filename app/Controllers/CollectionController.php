@@ -115,6 +115,21 @@ final class CollectionController
         redirect('/archivos');
     }
 
+    public function destroyMany(): void
+    {
+        Auth::requireLogin();
+        verify_csrf();
+        $n = CollectionService::destroyMany(Auth::id(), input_id_list());
+        if ($n < 1) {
+            flash('error', 'No hay archivos seleccionados.');
+            redirect(safe_return_path('/archivos'));
+        }
+        flash('success', $n === 1
+            ? 'Archivo eliminado. Las líneas quedaron independientes.'
+            : $n . ' archivos eliminados. Las líneas quedaron independientes.');
+        redirect(safe_return_path('/archivos'));
+    }
+
     private function payload(): array
     {
         $icons = array_keys(archive_icons());

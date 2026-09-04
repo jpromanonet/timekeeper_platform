@@ -137,6 +137,20 @@ final class TimelineService
         $stmt->execute(['id' => $id, 'uid' => $userId]);
     }
 
+    public static function softDeleteMany(int $userId, array $ids): int
+    {
+        $n = 0;
+        foreach ($ids as $id) {
+            $id = (int) $id;
+            if ($id < 1 || !self::find($userId, $id)) {
+                continue;
+            }
+            self::softDelete($userId, $id);
+            $n++;
+        }
+        return $n;
+    }
+
     public static function restore(int $userId, int $id): void
     {
         $stmt = Database::pdo()->prepare(

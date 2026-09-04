@@ -1,5 +1,5 @@
 <?php /** @var string|null $error */ ?>
-<h2>Crear archivo</h2>
+<h2>Crear colección</h2>
 <?php if ($error): ?><div class="flash flash-err"><?= e($error) ?></div><?php endif; ?>
 <form method="post" action="<?= e(form_action()) ?>" class="stack">
     <?= csrf_field() ?>
@@ -18,4 +18,4 @@
     </label>
     <button class="btn btn-primary" type="submit">Registrar</button>
 </form>
-<p class="auth-links"><a href="<?= e(url('/login')) ?>">Ya tengo archivo</a></p>
+<p class="auth-links"><a href="<?= e(url('/login')) ?>">Ya tengo colección</a></p>

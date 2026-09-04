@@ -20,8 +20,19 @@ final class SettingsController
         Auth::requireLogin();
         verify_csrf();
         $name = mb_substr(trim((string) input('name', '')), 0, 160);
+        $email = mb_strtolower(trim((string) input('email', '')));
         if ($name === '') {
             flash('error', 'El nombre no puede quedar vacío.');
+            redirect('/ajustes');
+        }
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            flash('error', 'Ingresá un correo válido.');
+            redirect('/ajustes');
+        }
+        $dup = Database::pdo()->prepare('SELECT id FROM users WHERE email = :email AND id <> :id LIMIT 1');
+        $dup->execute(['email' => $email, 'id' => Auth::id()]);
+        if ($dup->fetch()) {
+            flash('error', 'Ese correo ya está en uso.');
             redirect('/ajustes');
         }
         $avatar = null;
@@ -32,11 +43,11 @@ final class SettingsController
             redirect('/ajustes');
         }
         if ($avatar) {
-            Database::pdo()->prepare('UPDATE users SET name = :name, avatar = :avatar WHERE id = :id')
-                ->execute(['name' => $name, 'avatar' => $avatar, 'id' => Auth::id()]);
+            Database::pdo()->prepare('UPDATE users SET name = :name, email = :email, avatar = :avatar WHERE id = :id')
+                ->execute(['name' => $name, 'email' => $email, 'avatar' => $avatar, 'id' => Auth::id()]);
         } else {
-            Database::pdo()->prepare('UPDATE users SET name = :name WHERE id = :id')
-                ->execute(['name' => $name, 'id' => Auth::id()]);
+            Database::pdo()->prepare('UPDATE users SET name = :name, email = :email WHERE id = :id')
+                ->execute(['name' => $name, 'email' => $email, 'id' => Auth::id()]);
         }
         Auth::refresh();
         flash('success', 'Perfil actualizado.');

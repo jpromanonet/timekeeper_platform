@@ -29,6 +29,8 @@ require_once __DIR__ . '/Services/TagService.php';
 require_once __DIR__ . '/Services/EventService.php';
 require_once __DIR__ . '/Services/SearchService.php';
 require_once __DIR__ . '/Services/ExportService.php';
+require_once __DIR__ . '/Services/PdfWriter.php';
+require_once __DIR__ . '/Services/TimelinePdfService.php';
 require_once __DIR__ . '/Services/StatsService.php';
 require_once __DIR__ . '/Services/SeedService.php';
 
@@ -42,6 +44,7 @@ foreach ([
     'SettingsController',
     'TrashController',
     'FavoritesController',
+    'MetricsController',
 ] as $controller) {
     require_once __DIR__ . '/Controllers/' . $controller . '.php';
 }

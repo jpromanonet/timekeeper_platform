@@ -78,6 +78,7 @@
             { label: 'Crear archivo', url: tk.urls.archiveNew },
             { label: 'Crear línea', url: tk.urls.timelineNew },
             { label: 'Buscar', url: tk.urls.search },
+            { label: 'Métricas', url: tk.urls.metrics },
             { label: 'Favoritos', url: tk.urls.favorites },
             { label: 'Papelera', url: tk.urls.trash },
             { label: 'Ajustes', url: tk.urls.settings }
@@ -184,5 +185,54 @@
 
     document.querySelectorAll('form').forEach((form) => {
         form.addEventListener('submit', () => beep(520, 50));
+    });
+
+    function syncBulk(form) {
+        const boxes = form.querySelectorAll('input[name="ids[]"]');
+        const checked = form.querySelectorAll('input[name="ids[]"]:checked');
+        const submit = form.querySelector('[data-bulk-submit]');
+        const master = form.querySelector('[data-select-all]');
+        if (submit) submit.disabled = checked.length === 0;
+        if (master && boxes.length) {
+            master.checked = checked.length === boxes.length;
+            master.indeterminate = checked.length > 0 && checked.length < boxes.length;
+        }
+    }
+
+    document.addEventListener('click', (e) => {
+        document.querySelectorAll('details.drop[open]').forEach((drop) => {
+            if (!drop.contains(e.target)) {
+                drop.removeAttribute('open');
+            }
+        });
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        document.querySelectorAll('details.drop[open]').forEach((drop) => drop.removeAttribute('open'));
+    });
+
+    document.querySelectorAll('form[data-bulk]').forEach((form) => {
+        syncBulk(form);
+        form.addEventListener('change', () => syncBulk(form));
+        const master = form.querySelector('[data-select-all]');
+        if (master) {
+            master.addEventListener('change', () => {
+                form.querySelectorAll('input[name="ids[]"]').forEach((box) => {
+                    box.checked = master.checked;
+                });
+                syncBulk(form);
+            });
+        }
+        form.addEventListener('submit', (e) => {
+            const n = form.querySelectorAll('input[name="ids[]"]:checked').length;
+            if (n < 1) {
+                e.preventDefault();
+                return;
+            }
+            const msg = form.getAttribute('data-bulk-confirm') || ('¿Eliminar ' + n + ' seleccionados?');
+            if (!confirm(msg)) {
+                e.preventDefault();
+            }
+        });
     });
 })();

@@ -12,7 +12,7 @@ $success = flash('success');
 $error = flash('error');
 $nav = $currentNav ?? '';
 $palette = Auth::check() ? SearchService::palette(Auth::id()) : ['archives' => [], 'timelines' => []];
-$tagline = (string) app_config('tagline', 'Archivo personal');
+$tagline = (string) app_config('tagline', 'Colección personal');
 ?>
 <!DOCTYPE html>
 <html lang="es" data-theme="<?= e($theme) ?>" data-density="<?= e($density) ?>" data-sounds="<?= !empty($prefs['interface_sounds']) ? '1' : '0' ?>">
@@ -40,6 +40,7 @@ $tagline = (string) app_config('tagline', 'Archivo personal');
             <a class="<?= $nav === 'dashboard' ? 'is-active' : '' ?>" href="<?= e(url('/')) ?>"><?= icon('dashboard') ?> Dashboard</a>
             <a class="<?= $nav === 'archives' ? 'is-active' : '' ?>" href="<?= e(url('/archivos')) ?>"><?= icon('scroll') ?> Archivos</a>
             <a class="<?= $nav === 'timelines' ? 'is-active' : '' ?>" href="<?= e(url('/lineas')) ?>"><?= icon('hourglass') ?> Líneas</a>
+            <a class="<?= $nav === 'metrics' ? 'is-active' : '' ?>" href="<?= e(url('/metricas')) ?>"><?= icon('chart') ?> Métricas</a>
             <a class="<?= $nav === 'search' ? 'is-active' : '' ?>" href="<?= e(url('/buscar')) ?>"><?= icon('search') ?> Buscar</a>
             <a class="<?= $nav === 'favorites' ? 'is-active' : '' ?>" href="<?= e(url('/favoritos')) ?>"><?= icon('favorites') ?> Favoritos</a>
             <div class="nav-rule"></div>
@@ -103,6 +104,7 @@ window.TK = {
         timelines: <?= json_encode(url('/lineas')) ?>,
         timelineNew: <?= json_encode(url('/lineas/nueva')) ?>,
         search: <?= json_encode(url('/buscar')) ?>,
+        metrics: <?= json_encode(url('/metricas')) ?>,
         settings: <?= json_encode(url('/ajustes')) ?>,
         favorites: <?= json_encode(url('/favoritos')) ?>,
         trash: <?= json_encode(url('/papelera')) ?>

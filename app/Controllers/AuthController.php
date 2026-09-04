@@ -41,7 +41,7 @@ final class AuthController
     {
         Auth::guestOnly();
         view('auth/register', [
-            'title' => 'Crear archivo',
+            'title' => 'Crear colección',
             'error' => flash('error'),
         ], 'layouts/auth');
     }
@@ -76,7 +76,7 @@ final class AuthController
         $dup = Database::pdo()->prepare('SELECT id FROM users WHERE email = :email LIMIT 1');
         $dup->execute(['email' => $email]);
         if ($dup->fetch()) {
-            flash('error', 'Ese correo ya tiene un archivo.');
+            flash('error', 'Ese correo ya tiene una colección.');
             redirect('/registro');
         }
 
@@ -129,7 +129,7 @@ final class AuthController
                 'INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (:uid, :hash, DATE_ADD(NOW(), INTERVAL 2 HOUR))'
             )->execute(['uid' => $userId, 'hash' => $hash]);
             flash('reset_url', absolute_url('/restablecer/' . $token));
-            flash('success', 'Generamos un enlace de restablecimiento. En este archivo local se muestra abajo.');
+            flash('success', 'Generamos un enlace de restablecimiento. En esta instalación se muestra abajo.');
         } else {
             flash('success', 'Si el correo existe, vas a poder restablecer la clave.');
         }

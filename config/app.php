@@ -6,7 +6,7 @@ require_once __DIR__ . '/env.php';
 
 return [
     'name' => tk_env('APP_NAME', 'Timekeeper'),
-    'tagline' => 'Archivo personal',
+    'tagline' => 'Colección personal',
     'env' => strtolower((string) tk_env('APP_ENV', 'local')),
     'debug' => filter_var(tk_env('APP_DEBUG', 'true'), FILTER_VALIDATE_BOOLEAN),
     'url' => '',

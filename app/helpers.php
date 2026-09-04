@@ -386,3 +386,32 @@ function current_route(): string
     $current = '/' . trim((string) $current, '/');
     return $current === '//' ? '/' : $current;
 }
+
+/** @return list<int> */
+function input_id_list(string $key = 'ids'): array
+{
+    $raw = $_POST[$key] ?? [];
+    if (!is_array($raw)) {
+        $raw = [$raw];
+    }
+    $ids = [];
+    foreach ($raw as $value) {
+        $id = (int) $value;
+        if ($id > 0) {
+            $ids[$id] = $id;
+        }
+    }
+    return array_values($ids);
+}
+
+function safe_return_path(string $default): string
+{
+    $back = (string) input('back', $default);
+    if ($back === '/' || $back === '/archivos' || $back === '/lineas') {
+        return $back;
+    }
+    if (preg_match('#^/(archivos|lineas)/\d+$#', $back) === 1) {
+        return $back;
+    }
+    return $default;
+}

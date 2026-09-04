@@ -8,7 +8,7 @@
     <p class="muted">Vacía.</p>
 <?php endif; ?>
 <?php foreach ($timelines as $tl): ?>
-    <div class="line-row">
+    <div class="line-row is-actions">
         <span><?= e((string) $tl['name']) ?> <span class="muted"><?= e((string) ($tl['collection_name'] ?? '')) ?></span></span>
         <div class="btn-row">
             <form method="post" action="<?= e(form_action()) ?>"><?= csrf_field() ?><?= route_field('/papelera/lineas/' . (int) $tl['id'] . '/restaurar') ?><button class="btn btn-small" type="submit">Restaurar</button></form>
@@ -22,7 +22,7 @@
     <p class="muted">Vacía.</p>
 <?php endif; ?>
 <?php foreach ($events as $ev): ?>
-    <div class="line-row">
+    <div class="line-row is-actions">
         <span><?= e((string) $ev['title']) ?> <span class="muted"><?= e((string) $ev['timeline_name']) ?></span></span>
         <div class="btn-row">
             <form method="post" action="<?= e(form_action()) ?>"><?= csrf_field() ?><?= route_field('/papelera/eventos/' . (int) $ev['id'] . '/restaurar') ?><button class="btn btn-small" type="submit">Restaurar</button></form>

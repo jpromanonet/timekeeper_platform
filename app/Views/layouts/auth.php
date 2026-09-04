@@ -2,6 +2,7 @@
 /** @var string $templateFile */
 /** @var string $appName */
 /** @var string|null $title */
+$tagline = (string) app_config('tagline', 'Colección personal');
 ?>
 <!DOCTYPE html>
 <html lang="es" data-theme="archivist">
@@ -20,7 +21,7 @@
     <div class="auth-mark">
         <?= icon('hourglass', 36) ?>
         <h1>TIMEKEEPER</h1>
-        <p>ARCHIVO PERSONAL</p>
+        <p><?= e(mb_strtoupper($tagline)) ?></p>
     </div>
     <div class="panel auth-panel">
         <?php require $templateFile; ?>

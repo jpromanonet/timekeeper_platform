@@ -103,4 +103,27 @@ final class ExportService
         fclose($out);
         exit;
     }
+
+    public static function sendPdf(int $userId, int $timelineId): never
+    {
+        $timeline = TimelineService::find($userId, $timelineId);
+        if (!$timeline) {
+            throw new RuntimeException('Línea no encontrada.');
+        }
+        $events = EventService::forTimeline($timelineId);
+        $categories = CategoryService::forTimeline($timelineId);
+        $dateFormat = (string) ($timeline['date_format'] ?: 'd/m/Y');
+        $who = (string) (Auth::user()['name'] ?? '');
+        $binary = TimelinePdfService::render($timeline, $events, $categories, $dateFormat, $who);
+        $filename = slugify((string) $timeline['name']) . '.pdf';
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Length: ' . (string) strlen($binary));
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        echo $binary;
+        exit;
+    }
 }
